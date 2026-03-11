@@ -21,6 +21,7 @@ use IchHabRecht\ContentDefender\Repository\ColPosCountState;
 use IchHabRecht\ContentDefender\Repository\ContentRepository;
 use TYPO3\CMS\Core\Cache\Backend\TransientMemoryBackend;
 use TYPO3\CMS\Core\Cache\Frontend\VariableFrontend;
+use TYPO3\CMS\Core\Information\Typo3Version;
 use TYPO3\CMS\Core\Log\Logger;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
@@ -48,7 +49,13 @@ class ContentRepositoryTest extends UnitTestCase
         $GLOBALS['TCA']['tt_content']['ctrl']['languageField'] = 'sys_language_uid';
 
         $logger = new Logger('content_defender');
-        $backend = new TransientMemoryBackend('production', ['logger' => $logger]);
+
+        if (version_compare((new Typo3Version())->getBranch(), '14', '<')) {
+            $backend = new TransientMemoryBackend('production', ['logger' => $logger]);
+        }else{
+            $backend = new TransientMemoryBackend(['logger' => $logger]);
+        }
+
         $frontend = new VariableFrontend('runtime', $backend);
 
         $colPosCount = new ColPosCountState($frontend);
@@ -73,6 +80,7 @@ class ContentRepositoryTest extends UnitTestCase
      */
     public function countColPosByRecordReturnsCountOfRecordsInCurrentColPos()
     {
+        $this->resetSingletonInstances = true;
         $this->assertSame(3, $this->subject->countColPosByRecord($this->record));
     }
 
@@ -81,6 +89,7 @@ class ContentRepositoryTest extends UnitTestCase
      */
     public function addRecordToColPosReturnsNewCountOfRecordsInCurrentColPos()
     {
+        $this->resetSingletonInstances = true;
         $this->assertSame(4, $this->subject->addRecordToColPos($this->record));
     }
 
@@ -89,6 +98,7 @@ class ContentRepositoryTest extends UnitTestCase
      */
     public function isRecordInColPosReturnsTrueForRecordInColPos()
     {
+        $this->resetSingletonInstances = true;
         $record = $this->record;
         $record['uid'] = 1;
 
@@ -100,6 +110,7 @@ class ContentRepositoryTest extends UnitTestCase
      */
     public function isRecordInColPosReturnsFalseForRecordNotInColPos()
     {
+        $this->resetSingletonInstances = true;
         $this->assertFalse($this->subject->isRecordInColPos($this->record));
     }
 
@@ -108,6 +119,7 @@ class ContentRepositoryTest extends UnitTestCase
      */
     public function substituteNewIdsWithUidsReplacesNewIdsWithUids()
     {
+        $this->resetSingletonInstances = true;
         $record = $this->record;
         $record['uid'] = 'NEW123';
 
